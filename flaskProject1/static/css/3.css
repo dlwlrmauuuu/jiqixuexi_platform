@@ -1,0 +1,82 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    }
+    h1 {
+    font-size: 40px;
+    margin: 0 auto;
+    text-align: center;
+    }
+    select {
+        margin: 20px;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 10px;
+        border: 2px solid #d60f0f;
+    }
+
+    #rangeValue {
+        font-size: 24px;
+        margin-top: 20px;
+    }
+    .fengebili p {
+        display: inline;
+    }
+
+    .huafenfangfa p{
+        display: inline;
+    }
+    .xuexilv p {
+        display: inline;
+    }
+    .moxing p{
+        display: inline;
+    }
+    .pingjiazhibiao p{
+        display: inline;
+    }
+    .slider {
+        margin: 20px;
+        margin-left: 0;
+    }
+    .slider p {
+        display: inline;
+    }
+    .slider div {
+        display: inline;
+    }
+    .box {
+        float: left;
+        width: 500px;
+        margin-left: 300px;
+        margin-top: 70px;
+        border: solid;
+    }
+
+    .but:hover {
+        background-color: #45a049;
+    }
+
+    .but {
+        display: inline-block;
+        background-color: #4CAF50;
+        border: none;
+        color: white;
+        text-align: center;
+        font-size: 16px;
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 5px;
+        text-decoration: none;
+    }
+
+    .outcome{
+        margin-top: 70px;
+        float: right;
+        width: 500px;
+        height: 500px;
+        margin-right: 400px;
+
+        border: solid;
+    }

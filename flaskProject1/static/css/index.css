@@ -1,0 +1,27 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+h1 {
+    font-size: 40px;
+    margin: 0 auto;
+    text-align: center;
+
+}
+.container {
+    text-align: center;
+    margin: 0 auto;
+}
+.dataset{
+    margin-top: 50px;
+}
+
+.dataset a{
+    margin: 50px;
+}
+
+.choose {
+    margin: 50px;
+    font-size: 30px;
+}
