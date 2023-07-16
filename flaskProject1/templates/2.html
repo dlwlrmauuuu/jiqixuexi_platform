@@ -117,9 +117,11 @@
 
         <div id="log"></div>
     </div>
-
         <div class="bu"><button class="but" id = 'carry'>执行</button></div>
-
+        <div class="bu"><button class="but2" id="reset" onclick="refreshPage()">重置</button> </div>
+        <script>function refreshPage() {location.reload();}</script>
+        <div class="bu"><button class="but3" id="back" onclick="back()">返回</button> </div>
+        <script>function back() {history.back();}</script>
 
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

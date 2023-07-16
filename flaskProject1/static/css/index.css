@@ -1,27 +1,33 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-h1 {
-    font-size: 40px;
-    margin: 0 auto;
-    text-align: center;
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        }
+      h1 {
+        font-size: 40px;
+        margin: 0 auto;
+        text-align: center;
+        }
 
-}
-.container {
-    text-align: center;
-    margin: 0 auto;
-}
-.dataset{
-    margin-top: 50px;
-}
-
-.dataset a{
-    margin: 50px;
-}
-
-.choose {
-    margin: 50px;
-    font-size: 30px;
-}
+    .container {
+        display: flex;
+        justify-content: space-between;
+    }
+    .dataset {
+        margin: 50px auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    .dataset a {
+        text-decoration: none;
+        margin: 50px;
+        width: 200px;
+    }
+    .caption {
+        text-align: center;
+    }
+    .choose{
+        text-align: center;
+        font-size: 50px;
+    }

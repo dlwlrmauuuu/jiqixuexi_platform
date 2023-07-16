@@ -307,21 +307,21 @@ class EvaluationStandard():
         answer = []
         for i in self.code_list:
             if i == '1':
-                answer.append('\nmse_rate: '+str(self.MSE_rate()))
+                answer.append('\nmse_rate: ' + str(self.MSE_rate()))
             elif i == '2':
-                answer.append('\nwrong_rate:'+str(self.wrong_rate()))
+                answer.append('\nwrong_rate:' + str(self.wrong_rate()))
             elif i == '3':
-                answer.append('\nacc_rate:'+str(self.acc_rate()))
+                answer.append('\nacc_rate:' + str(self.acc_rate()))
             elif i == '4':
-                answer.append('\nprecision:'+str(self.precision_rate()))
+                answer.append('\nprecision:' + str(self.precision_rate()))
             elif i == '5':
-                answer.append('\nrecall_rate:'+str(self.recall_rate()))
+                answer.append('\nrecall_rate:' + str(self.recall_rate()))
             elif i == '6':
-                answer.append('\nF1_rate:'+str(self.F1_rate()))
+                answer.append('\nF1_rate:' + str(self.F1_rate()))
             elif i == '7':
-                answer.append('\nR2_rate:'+str(self.R2_rate()))
+                answer.append('\nR2_rate:' + str(self.R2_rate()))
             else:
-                answer.append('\nMAE_rate:'+str(self.MAE_rate()))
+                answer.append('\nMAE_rate:' + str(self.MAE_rate()))
         return answer
 
 
@@ -364,7 +364,6 @@ def get_moxing(data):
 
 @socketio.on('client_message')
 def handle_client_message(data):
-
     t_list = func(data['shujuji'], float(data['fengebili']), get_moxing(data), data['private_para'])
     outcome = str(t_list[1])
     print(data)
@@ -432,18 +431,17 @@ def page():
 
 
 @app.route('/1.html')
-def process_data1():
+def page1():
     return render_template('1.html', hf=hf1, mx=mx1)
 
 
 @app.route('/2.html')
-def process_data2():
+def page2():
     return render_template('2.html', hf=hf2, mx=mx2)
 
 
 @app.route('/3.html')
-
-def process_data3():
+def page3():
     return render_template('3.html', hf=hf3, mx=mx3)
 
 

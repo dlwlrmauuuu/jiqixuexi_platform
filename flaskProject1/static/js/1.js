@@ -132,8 +132,7 @@
 }
 
 
-  function check(str,value)
-  {
+  function check(str,value) {
   if (str == "degree" || str == "tol" || str == "k" || str == "learning_rate" || str == "iterations" || str == "max_depth" || str == "d"
   || str == "n_clusters" || str == "max_iter" || str == "n_estimators" || str == "random_state" || str == "n_components" || str == "n_components"
   ||str=="eta"||str=="subsample")
@@ -151,3 +150,4 @@
   else
   return false;
   }
+

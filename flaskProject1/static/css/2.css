@@ -8,6 +8,7 @@
     margin: 0 auto;
     text-align: center;
     }
+
     select {
         margin: 20px;
         padding: 10px;
@@ -37,8 +38,7 @@
         display: inline;
     }
     .slider {
-        margin: 20px;
-        margin-left: 0;
+        margin: 20px 20px 20px 0;
     }
     .slider p {
         display: inline;
@@ -46,35 +46,81 @@
     .slider div {
         display: inline;
     }
-    .box {
-        float: left;
-        width: 500px;
-        margin-left: 300px;
-        margin-top: 70px;
-        border: solid;
+    .but button{
+        margin-top: 10px;
+        padding: 10px 20px;
+        font-size: 16px;
+        font-weight: bold;
+        color: #FFF;
+        background-color: #9ed5a1;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
     }
 
-    .but:hover {
+    .but button:hover {
         background-color: #45a049;
-    }
-    .but {
-        display: inline-block;
-        background-color: #4CAF50;
-        border: none;
-        color: white;
-        text-align: center;
-        font-size: 16px;
-        padding: 10px 20px;
-        cursor: pointer;
-        border-radius: 5px;
-        text-decoration: none;
     }
 
     .outcome{
-        margin-top: 70px;
-        float: right;
-        width: 500px;
-        height: 500px;
-        margin-right: 400px;
+        float: left;
+        text-align: left;
+        width: 450px;
+        height: 800px;
         border: solid;
+        background-color: #a4a9e1;
+    }
+
+    .private_para{
+        float: left;
+        display: inline;
+
+        width: 450px;
+        height: 800px;
+        background-color: #a9f1a6;
+        border: solid;
+    }
+
+    .box {
+        float: left;
+        display: inline;
+        width: 510px;
+        height: 800px;
+
+        border: solid;
+        margin-left: 100px;
+        background-color: #f5a1a1;
+    }
+
+    .total {
+        width: 1600px;
+        height: 800px;
+        margin: 70px auto;
+        text-align: center;
+        background-color: #1c1b1b;
+    }
+
+    .checkbox-wrapper {
+            display: inline-block;
+            width: 25%;
+            margin-bottom: 10px;
+    }
+
+    .temp_para{
+        display: inline;
+    }
+    .private_para  input[type="text"] {
+    width: 200px;
+    height: 30px;
+    padding: 5px;
+    border: 1px solid #ef1010;
+    border-radius: 5px;
+    font-size: 14px;
+    }
+    .private_para div {
+        margin: 20px;
+        width: 400px;
+        text-align: left;
+        color: #0c0b0b;
     }
