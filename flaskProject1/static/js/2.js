@@ -46,7 +46,7 @@
 
 
     var data = {
-      "shujuji" : 0,
+      "shujuji" : 1,
       "huafenfangfa": division_method_value,
       "moxing": model_value,
       "fengebili": division_rate_value,
@@ -74,8 +74,8 @@
   socket.on('server_message',function (backdata) {
     var outcome_rate = document.getElementById('outcome_1')
 
-    var content = '降维后:' +'</br>'+ backdata.outcome.toString();
-    var content2 = 'Evaluate_standard: '+'</br>' + backdata.evaluation_standard;
+    var content = '降维后: '+'</br>' + backdata.outcome.toString();
+    var content2 = ' Evaluate_standard: '+'</br>' + backdata.evaluation_standard;
     if(jiangwei == 1) {
       content2 = content;
     }

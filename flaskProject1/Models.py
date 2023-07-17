@@ -569,13 +569,15 @@ class DimReduction(Algorithm):
         self.whiten = whiten  # 白化，使得每个特征具有相同的方差。
 
     def fit(self, x_train, y_train):
-        self.x_train = x_train
-        self.y_train = y_train
+        self.x_train = np.array(x_train)
+        self.y_train = np.array(y_train)
 
     def predict(self, x_test):  # 降维算法里面这是转化
+        x_test = np.array(x_test)
         model = PCA(n_components=self.n_components, whiten=self.whiten)
         model.fit_transform(self.x_train)
-        return model.transform(x_test)
+        x_pred=model.transform(x_test)
+        return x_pred[0:5]
 ##################################################################################
 # 梯度增强
 # 这里使用XGboost
@@ -597,7 +599,22 @@ class Graboosting(Algorithm):
             y_pred = model.predict(x_test)
             return y_pred
         if self.flag == 1:
-            model = XGBRegressor(eta=self.eta, max_depth=self.max_depth, subsample=self.subsample)
+            model = XGBRegressor(max_depth=self.max_depth,  # 每一棵树最大深度，默认6；
+                                 learning_rate=self.eta,  # 学习率，每棵树的预测结果都要乘以这个学习率，默认0.3；
+                                 n_estimators=100,  # 使用多少棵树来拟合，也可以理解为多少次迭代。默认100；
+                                 objective='reg:squarederror',  # 此默认参数与 XGBClassifier 不同，‘
+                                 booster='gbtree',
+                                 # 有两种模型可以选择gbtree和gblinear。gbtree使用基于树的模型进行提升计算，gblinear使用线性模型进行提升计算。默认为gbtree
+                                 gamma=0.2,  # 叶节点上进行进一步分裂所需的最小"损失减少"。默认0；
+                                 min_child_weight=7,  # 可以理解为叶子节点最小样本数，默认1；
+                                 subsample=self.subsample,  # 训练集抽样比例，每次拟合一棵树之前，都会进行该抽样步骤。默认1，取值范围(0, 1]
+                                 colsample_bytree=0.8,  # 每次拟合一棵树之前，决定使用多少个特征，参数默认1，取值范围(0, 1]。
+                                 reg_alpha=0.01,  # 默认为0，控制模型复杂程度的权重值的 L1 正则项参数，参数值越大，模型越不容易过拟合。
+                                 reg_lambda=1,  # 默认为1，控制模型复杂度的权重值的L2正则化项参数，参数越大，模型越不容易过拟合。
+                                 nthread=4,
+                                 scale_pos_weight=2,
+                                 seed=27
+                                 )
             model.fit(self.x_train, self.y_train)
             y_pred = model.predict(x_test)
             return y_pred
@@ -632,28 +649,34 @@ class GBDT(Algorithm):
         self.d = d
         self.random_state = random_state
 
-    def fit(self,x_train,y_train):
+    def fit(self, x_train, y_train):
         self.x_train = np.array(x_train)
         self.y_train = np.array(y_train)
-        self.tree = DecisionTreeClassifier(self.criterion, self.max_depth, self.d,self.random_state)
+        self.tree = DecisionTreeClassifier(self.criterion, self.max_depth, self.d, self.random_state)
         self.tree.fit(x_train, y_train)
         y_predict0 = self.tree.predict(self.x_train)
-        self.feature=y_predict0
-        self.label=y_train
+        self.feature = y_predict0
+        self.label = y_train
         # self.Trees = self.BDT_model(y_predict0, self.y_train)
         self.Trees = self.BDT_model()
         # print(1)
 
-    def predict(self,x_test):
-        self.x_test=np.array(x_test)
+    def predict(self, x_test):
+        self.x_test = np.array(x_test)
         # y_predict0 = self.tree.predict(self.x_train)
         y_predict = self.tree.predict(self.x_test)
         y_predict = np.array(y_predict)
         predict = self.BDT_predict(self.Trees, y_predict)
         # predict=0
-        return predict
+        num = len(predict)
+        predict_copy = predict.copy()
+        for i in range(num):
+            if predict[i] > 0.5:
+                predict_copy[i] = 1
+            else:
+                predict_copy[i] = 0
 
-
+        return predict_copy
 
     def Get_stump_list(self):
         # 特征值从小到大排序好,错位相加
@@ -664,8 +687,9 @@ class GBDT(Algorithm):
         # stump_list = ((np.array(tmp1) + np.array(tmp2)) / 2.0)[1:-1]
         stump_list = ((np.array(tmp1) + np.array(tmp2)) / 2.0)
         return stump_list
+
     # 此处的label其实是残差
-    def Get_decision_tree(self,stump_list, feature, label):
+    def Get_decision_tree(self, stump_list, feature, label):
         best_mse = np.inf
         best_stump = 0  # min(stump_list)
         residual = np.array([])
@@ -693,8 +717,9 @@ class GBDT(Algorithm):
                 # print("decision stump: %d, residual: %s"% (i, residual))
         Tree = Tree_model(best_stump, best_mse, left_value, right_value, residual)
         return Tree, residual
+
     # Tree_num就是树的数量
-    def BDT_model(self,Tree_num=100):
+    def BDT_model(self, Tree_num=100):
         self.feature = np.array(self.feature)
         self.label = np.array(self.label)
         stump_list = self.Get_stump_list()
@@ -708,7 +733,7 @@ class GBDT(Algorithm):
             Trees.append(Tree)
         return Trees
 
-    def BDT_predict(self,Trees, feature):
+    def BDT_predict(self, Trees, feature):
         predict_list = [0 for i in range(np.shape(feature)[0])]
         # 将每棵树对各个特征预测出来的结果进行相加，相加的最后结果就是最后的预测值
         for Tree in Trees:
@@ -718,33 +743,9 @@ class GBDT(Algorithm):
                 else:
                     predict_list[i] = predict_list[i] + Tree.right_value
         return predict_list
+
 ##################################################################################
 
-
-if __name__ == '__main__':
-    # 生成一些随机数据，用于测试
-    np.random.seed(42)
-    X = np.random.uniform(0, 10, size=(100, 2))
-    # print(X)
-    y = np.sin(X[:, 0]) + np.cos(X[:, 1]) + np.random.normal(0, 0.1, size=100)
-    # print(y)
-
-    df = pd.read_csv('DataSets/BostonHousing.csv')
-    df1=df.copy()
-
-    y=df1['medv']
-    del df1['medv']
-    x=df1
-
-    x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=0.3)
-
-    print(x_train)
-    print(x_test)
-    model=DimReduction(n_components=5,whiten=True)
-
-    model.fit(x_train,y_train)
-
-    print(model.predict(x_test))
 
 
 

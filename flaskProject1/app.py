@@ -128,7 +128,7 @@ class DivisionAndSplitter:
         return train_x, train_y, test_x, test_y
 
 
-class TrainingModels(models.Linear):
+class TrainingModels():
     def __init__(self, x_train, y_train, x_test, y_test, number, parameter_list) -> None:
         super().__init__()
         self.time_end = None
@@ -196,7 +196,11 @@ class TrainingModels(models.Linear):
             self.models = models.Beyes()
             self.logger.print("Using Naive Bayes...")
         elif self.flag == 8:
-            self.models = models.DimReduction(n_components=None, whiten=False)
+            if len(self.parameter_list) != 2:
+                self.models = models.DimReduction(n_components=3, whiten=False)
+            else:
+                self.models = models.DimReduction(n_components=int(float(self.parameter_list[0])),
+                                                  whiten=self.parameter_list[1])
             self.logger.print("Using Dimensional Reduction...")
         elif self.flag == 9:
             if len(self.parameter_list) != 4:
@@ -213,9 +217,9 @@ class TrainingModels(models.Linear):
                 self.models = models.Graboosting(flag=0, eta=0.3, max_depth=6, subsample=1)
             else:
                 self.models = models.Graboosting(flag=int(float(self.parameter_list[0])),
-                                                 eta=int(float(self.parameter_list[1])),
+                                                 eta=float(self.parameter_list[1]),
                                                  max_depth=int(float(self.parameter_list[2])),
-                                                 subsample=int(float(self.parameter_list[3])))
+                                                 subsample=float(self.parameter_list[3]))
             self.logger.print("Using eXtreme Gradient Boosting...")
 
         self.logger.print("Fitting models...")
@@ -238,9 +242,10 @@ class EvaluationStandard():
         self.y_test = y_test
         self.y_pred = y_pred
         self.code_list = code_list
-        # self.logger = Logger.get_logger('Standard')
-        # 检查y值是否都是整数
+        self.logger = Logger.get_logger('Standard')
+        self.logger2 = Logger.get_logger("Error")
         if all(y % 1 == 0 for y in y_test) and all(y % 1 == 0 for y in y_pred):
+            self.logger.print("Use classification")
             # 分类问题基本指标
             cm = confusion_matrix(y_test, y_pred)
             cm = np.array(cm)
@@ -254,6 +259,7 @@ class EvaluationStandard():
             self.TN = TN.astype(float)
         else:
             # 回归问题基本指标
+            self.logger.print("Use regression")
             self.yt = np.array(y_test)
             self.yp = np.array(y_pred)
             self.sse = np.sum((self.yt - self.yp) ** 2)
@@ -303,26 +309,38 @@ class EvaluationStandard():
         rate = rate / len(self.yt)
         return rate
 
+    def check(self, nums):
+        one_seven_eight = ['1', '7', '8']
+        two_three_four = ['2', '3', '4','5', '6']
+
+        if set(nums).issubset(one_seven_eight) or set(nums).issubset(two_three_four):
+            return True
+        else:
+            return False
+
     def ReturnResults(self):
         answer = []
-        for i in self.code_list:
-            if i == '1':
-                answer.append('\nmse_rate: ' + str(self.MSE_rate()))
-            elif i == '2':
-                answer.append('\nwrong_rate:' + str(self.wrong_rate()))
-            elif i == '3':
-                answer.append('\nacc_rate:' + str(self.acc_rate()))
-            elif i == '4':
-                answer.append('\nprecision:' + str(self.precision_rate()))
-            elif i == '5':
-                answer.append('\nrecall_rate:' + str(self.recall_rate()))
-            elif i == '6':
-                answer.append('\nF1_rate:' + str(self.F1_rate()))
-            elif i == '7':
-                answer.append('\nR2_rate:' + str(self.R2_rate()))
-            else:
-                answer.append('\nMAE_rate:' + str(self.MAE_rate()))
-        return answer
+        if self.check(self.code_list):
+            for i in self.code_list:
+                if i == '1':
+                    answer.append('mse_rate: ' + str(self.MSE_rate()))
+                elif i == '2':
+                    answer.append('wrong_rate:' + str(self.wrong_rate()))
+                elif i == '3':
+                    answer.append('acc_rate:' + str(self.acc_rate()))
+                elif i == '4':
+                    answer.append('precision:' + str(self.precision_rate()))
+                elif i == '5':
+                    answer.append('recall_rate:' + str(self.recall_rate()))
+                elif i == '6':
+                    answer.append('F1_rate:' + str(self.F1_rate()))
+                elif i == '7':
+                    answer.append('R2_rate:' + str(self.R2_rate()))
+                else:
+                    answer.append('MAE_rate:' + str(self.MAE_rate()))
+            return answer
+        else:
+            self.logger2.print("Wrong evaluation index has been selected. Please check.")
 
 
 def func(dataset_no, rate, model_no, para_list):
@@ -356,9 +374,9 @@ def get_moxing(data):
         return 7
     elif data['moxing'] == "降维算法":
         return 8
-    elif data['moxing'] == "梯度增强":
-        return 9
     elif data['moxing'] == "GBDT":
+        return 9
+    elif data['moxing'] == "梯度增强":
         return 10
 
 
@@ -367,22 +385,26 @@ def handle_client_message(data):
     t_list = func(data['shujuji'], float(data['fengebili']), get_moxing(data), data['private_para'])
     outcome = str(t_list[1])
     print(data)
-
-    juede = EvaluationStandard(t_list[0], t_list[1], data['pingjiazhibiao'])
-    ss = juede.ReturnResults()
-    print(ss)
+    print(outcome)
+    # print(outcome.shape[0])
+    # for i in range()
+    ss='null'
+    if(data['moxing'] != '降维算法'):
+        juede = EvaluationStandard(t_list[0], t_list[1], data['pingjiazhibiao'])
+        ss =str(juede.ReturnResults())
+        print(ss)
 
     emit('server_message', {'outcome': outcome, 'evaluation_standard': ss})
 
 
 # 第一个数据集划分方法和算法
-hf1 = ["选项一", "选项二"]
+hf1 = ["随机"]
 mx1 = {"线性回归", "梯度增强"}
 # 第二个数据集划分方法和模型
-hf2 = ["选项一", "选项二"]
+hf2 = ["随机"]
 mx2 = ["支持向量机", "K-近邻", "逻辑回归", "决策树", "随机森林", "朴素贝叶斯", "降维算法", "梯度增强", "GBDT"]
 # 第三个数据集划分方法和模型
-hf3 = ["选项一", "选项二"]
+hf3 = ["随机"]
 mx3 = ["支持向量机", "K-近邻", "逻辑回归", "决策树", "随机森林", "朴素贝叶斯", "降维算法", "梯度增强", "GBDT"]
 
 
@@ -392,25 +414,25 @@ def generate_divs(selected_option):
     if selected_option == "线性回归":
         divs = []
     elif selected_option == "支持向量机":
-        divs = ["kernel", "degree", "tol"]
+        divs = ["核函数", "多项式核阶数", "残差收敛条件"]
     elif selected_option == "K-近邻":
         divs = ["k"]
     elif selected_option == "逻辑回归":
-        divs = ["learning_rate", "iterations"]
+        divs = ["学习率", "迭代次数"]
     elif selected_option == "决策树":
-        divs = ["criterion", "max_depth", "d", "random_state"]
+        divs = ["特征选取方法", "最大深度", "选择特征数", "随机数种子"]
     elif selected_option == "K平均":
-        divs = ["n_clusters", "initCent", "max_iter"]
+        divs = ["聚类数", "生成初始质心方法", "迭代次数"]
     elif selected_option == "随机森林":
-        divs = ["n_estimators", "criterion", "max_depth", "d", "random_state"]
+        divs = ["树的数量", "特征选取方法", "最大深度", "选择特征数", "随机数种子"]
     elif selected_option == "朴素贝叶斯":
         divs = []
     elif selected_option == "降维算法":
-        divs = ["n_components", "whiten"]
+        divs = ["降维后维度", "白化"]
     elif selected_option == "梯度增强":
-        divs = ["flag", "eta", "max_depth", "subsample"]
+        divs = ["分类或回归", "学习率", "最大深度", "抽样比例"]
     elif selected_option == "GBDT":
-        divs = ['criterion', 'max_depth', 'd', 'random_state']
+        divs = ['特征选取方法', '最大深度', '选择特征数', '随机数种子']
 
     return divs
 
