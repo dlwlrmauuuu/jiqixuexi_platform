@@ -117,7 +117,7 @@
         divsContainer.innerHTML = "";  // 清空原有的div
 
         for (var i = 0; i < divs.length; i++) {
-
+          var div = document.createElement("div");
           var inputLabel = document.createElement("label");
           inputLabel.innerHTML = divs[i];
           var inputTextbox = document.createElement("input");
@@ -128,7 +128,8 @@
           inputTextbox.placeholder=showPlaceholder(divs[i])
 
           inputLabel.appendChild(inputTextbox);
-          divsContainer.appendChild(inputLabel);
+          div.appendChild(inputLabel);
+          divsContainer.appendChild(div);
         }
       }
     };

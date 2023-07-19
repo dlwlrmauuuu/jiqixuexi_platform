@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import plotly.graph_objs as go
 from plotly import offline
+import numpy as np
 
 
 class DataCharts:
@@ -44,7 +45,7 @@ class DataCharts:
             )
         )
         fig = go.Figure(data=data, layout=layout)
-        offline.plot(fig, filename='static/Pictures/3d-scatter.html', auto_open=True)
+        offline.plot(fig, filename='static/Pictures/scatter.html', auto_open=False)
 
         return 0
 
@@ -54,10 +55,49 @@ class DataCharts:
         self.labels = labels
         return 0
 
+    def GetCoordinate_1(self, x_test, y_test, y_pred):
+        self.x = []
+        self.y = y_test
+        self.z = y_pred
+        i = 0
+        for point in x_test:
+            self.x.append(i)
+            i += 1
+
+    def LineChart(self, x, y_true, y_pred):
+        self.GetCoordinate_1(x, y_true, y_pred)
+
+        data = [go.Scatter(
+            x=self.x, y=self.y,
+            mode='markers+lines',
+            marker=dict(symbol='circle',
+                        size=10,
+                        color='#FB8D75'),  # More options here
+            name='true value'
+        ),
+            go.Scatter(
+                x=self.x, y=self.z,
+                mode='markers+lines',
+                marker=dict(symbol='circle',
+                            size=10,
+                            color='#659B91'),  # More options here
+                name='predicted value'
+            )
+        ]
+
+        layout = go.Layout(title='2D Line Graph')
+
+        fig = go.Figure(data=data, layout=layout)
+
+        offline.plot(fig, filename='static/Pictures/scatter.html', auto_open=False)
+
 
 if __name__ == '__main__':
     print("begin...")
-    data=[[1,2,3,4],[1,2,3,4],[2,3,4,5]]
-    labels=[1,1,0,0]
-    pic=DataCharts()
-    pic.ScatterPlot3D(data,labels)
+    data = [[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6], [4, 5, 6, 7]]
+    true_labels = [1, 2, 3, 4]
+    pred_labels = [4, 3, 2, 1]
+    labels = [1, 1, 0, 0]
+    pic = DataCharts()
+    # pic.ScatterPlot3D(data,labels)
+    pic.LineChart(data, true_labels, pred_labels)

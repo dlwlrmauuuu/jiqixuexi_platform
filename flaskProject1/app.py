@@ -4,6 +4,7 @@ import time
 import warnings
 from sklearn.model_selection import train_test_split
 import Charts as charts
+
 warnings.filterwarnings("ignore")
 import numpy as np
 from flask import Flask, render_template, jsonify, request
@@ -191,7 +192,7 @@ class TrainingModels():
             self.models = models.Beyes()
             self.logger.print("Using Naive Bayes...")
         elif self.flag == 8:
-            if len(self.parameter_list)!= 2:
+            if len(self.parameter_list) != 2:
                 self.models = models.DimReduction(n_components=3, whiten=False)
             else:
                 self.models = models.DimReduction(n_components=int(float(self.parameter_list[0])),
@@ -342,6 +343,7 @@ class EvaluationStandard():
         else:
             self.logger2.print("Wrong evaluation index has been selected. Please check.")
 
+
 class DataVisualization():
 
     def __init__(self) -> None:
@@ -354,16 +356,21 @@ class DataVisualization():
         self.y_test = None
         self.y_pred = None
 
-    def getMoreDetails(self):
-        return 0
-
     def ScatterPlot3D(self, x_test, y_pred):
+        self.logger.print("Start drawing...")
         self.x_test = x_test
         self.y_pred = y_pred
         self.pic.ScatterPlot3D(self.x_test, self.y_pred)
+        self.logger.print("Done.")
 
-    def ScatterPlot2D(self):
-        return 0
+    def LinePlot(self, x_test, y_test, y_pred):
+        self.logger.print("Start drawing...")
+        self.x_test = x_test
+        self.y_test = y_test
+        self.y_pred = y_pred
+        self.pic.LineChart(x_test, y_test, y_pred)
+        self.logger.print("Done.")
+
 
 def func(dataset_no, rate, model_no, para_list):
     dataset = ReadDataset(dataset_no)
@@ -371,9 +378,15 @@ def func(dataset_no, rate, model_no, para_list):
     x_train, y_train, x_test, y_test = splitter.split(dataset)
     model = TrainingModels(x_train, y_train, x_test, y_test, model_no, para_list)
     y_pred = model.fit_predict(x_train, y_train, x_test)
-    if dataset_no != ('0' or 0):
+
+    if dataset_no in ['2', 1, '1', 2]:
         pic = DataVisualization()
         pic.ScatterPlot3D(x_test, y_pred)
+    elif dataset_no in [0, '0']:
+        pic = DataVisualization()
+        pic.LinePlot(x_test, y_test, y_pred)
+    else:
+        print('Wrong')
     return y_test, y_pred
 
 
@@ -427,10 +440,12 @@ hf1 = ["随机"]
 mx1 = {"线性回归", "梯度增强"}
 # 第二个数据集划分方法和模型
 hf2 = ["随机"]
-mx2 = ["支持向量机", "K-近邻", "逻辑回归", "决策树", "随机森林", "朴素贝叶斯", "降维算法", "梯度增强", "adaboost", "K-means"]
+mx2 = ["支持向量机", "K-近邻", "逻辑回归", "决策树", "随机森林", "朴素贝叶斯", "降维算法", "梯度增强", "adaboost",
+       "K-means"]
 # 第三个数据集划分方法和模型
 hf3 = ["随机"]
-mx3 = ["支持向量机", "K-近邻", "逻辑回归", "决策树", "随机森林", "朴素贝叶斯", "降维算法", "梯度增强", "adaboost","K-means"]
+mx3 = ["支持向量机", "K-近邻", "逻辑回归", "决策树", "随机森林", "朴素贝叶斯", "降维算法", "梯度增强", "adaboost",
+       "K-means"]
 
 
 def generate_divs(selected_option):
