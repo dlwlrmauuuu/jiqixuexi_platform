@@ -68,7 +68,7 @@
       var logDiv = document.getElementById('log');
       var name = message.name
       var content = message.message;
-      logDiv.innerHTML +='['+name +']'+': '+ content + '</br>';
+      logDiv.innerHTML +='</br>'+'['+name +']'+': '+ content + '</br>';
       }
   });
   socket.on('server_message',function (backdata) {
@@ -117,17 +117,18 @@
         divsContainer.innerHTML = "";  // 清空原有的div
 
         for (var i = 0; i < divs.length; i++) {
-          var div = document.createElement("div");
+
           var inputLabel = document.createElement("label");
           inputLabel.innerHTML = divs[i];
           var inputTextbox = document.createElement("input");
+
           inputTextbox.type = "text";
+          inputTextbox.className="form-control"
           inputTextbox.id=divs[i];
           inputTextbox.placeholder=showPlaceholder(divs[i])
 
           inputLabel.appendChild(inputTextbox);
-          div.appendChild(inputLabel);
-          divsContainer.appendChild(div);
+          divsContainer.appendChild(inputLabel);
         }
       }
     };

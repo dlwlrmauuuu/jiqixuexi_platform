@@ -1,13 +1,16 @@
 import csv
 import math
 import time
-
+import warnings
+from sklearn.model_selection import train_test_split
+import Charts as charts
+warnings.filterwarnings("ignore")
 import numpy as np
 from flask import Flask, render_template, jsonify, request
 from flask_socketio import SocketIO
 from flask_socketio import emit
 from sklearn import metrics
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, r2_score
 
 import Models as models
 
@@ -99,32 +102,16 @@ class TrainTestDataset:
 class DivisionAndSplitter:
     def __init__(self, ratio) -> None:
         super().__init__()
-        self.ratio = ratio
+        self.ratio = 1 - ratio
         self.logger = Logger.get_logger('DivisionAndSplitter')
         # self.logger.print("I'm ratio:{}".format(self.ratio))
 
     def split(self, dataset):
         self.logger.print("Start splitting...")
-        trainingSet = [dataset[i] for i in range(math.floor(len(dataset) * self.ratio)) if i != 0]
-        trainingSet = TrainTestDataset(trainingSet)
-
-        testingSet = [dataset[i] for i in range(math.floor(len(dataset) * self.ratio), len(dataset)) if i != 0]
-        testingSet = TrainTestDataset(testingSet)
-
-        # self.logger.print("split!")
-        # self.logger.print("training_len = {}".format([trainingSet[i] for i in range(len(trainingSet))]))
-        # self.logger.print("training_len = {}".format([testingSet[i] for i in range(len(testingSet))]))
+        X = [row[:-1] for row in dataset]  # 提取所有特征
+        y = [row[-1] for row in dataset]  # 提取所有目标
+        train_x, test_x, train_y, test_y = train_test_split(X, y, test_size=self.ratio)
         self.logger.print("Splitting completed.")
-        return trainingSet, testingSet
-
-    def division(self, training, testing):
-        self.logger.print("Start dividing..")
-        train_x = [row[:-1] for row in training]
-        train_y = [row[-1] for row in training]
-        test_x = [row[:-1] for row in testing]
-        test_y = [row[-1] for row in testing]
-        self.logger.print("Dividing completed.")
-        # self.logger.print("y_train_len = {}".format([train_y[i] for i in range(len(train_y))]))
         return train_x, train_y, test_x, test_y
 
 
@@ -143,12 +130,21 @@ class TrainingModels():
         self.parameter_list = parameter_list
         self.logger = Logger.get_logger('Models')
 
+    def print_progress_bar(self):
+        list_circle = ["\\", "|", "/", "—"]
+        i = 1
+        while i <= 2:
+            time.sleep(0.25)
+            print("\r{}".format(list_circle[i % 4]), end="", flush=True)
+            i += 1
+
     def fit_predict(self, x_train, y_train, x_test):
 
         self.logger.print("Loading models...")
 
         if self.flag == 0:
-            self.models = models.Linear()
+            from sklearn.linear_model import LinearRegression
+            self.models = LinearRegression()
             self.logger.print("Using Linear Regression...")
         elif self.flag == 1:
             if len(self.parameter_list) != 3:
@@ -171,7 +167,6 @@ class TrainingModels():
             if len(self.parameter_list) != 4:
                 self.models = models.DecisionTreeClassifier(criterion='gini', max_depth=5, d=4,
                                                             random_state=0)
-            # ['gini', 'entropy','error']
             else:
                 self.models = models.DecisionTreeClassifier(criterion=self.parameter_list[0],
                                                             max_depth=int(float(self.parameter_list[1])),
@@ -196,7 +191,7 @@ class TrainingModels():
             self.models = models.Beyes()
             self.logger.print("Using Naive Bayes...")
         elif self.flag == 8:
-            if len(self.parameter_list) != 2:
+            if len(self.parameter_list)!= 2:
                 self.models = models.DimReduction(n_components=3, whiten=False)
             else:
                 self.models = models.DimReduction(n_components=int(float(self.parameter_list[0])),
@@ -211,7 +206,7 @@ class TrainingModels():
                                           max_depth=int(float(self.parameter_list[1])),
                                           d=int(float(self.parameter_list[2])),
                                           random_state=int(float(self.parameter_list[3])))
-            self.logger.print("Using Gradient Boosting...")
+            self.logger.print("Using ada Boosting...")
         else:
             if len(self.parameter_list) != 4:
                 self.models = models.Graboosting(flag=0, eta=0.3, max_depth=6, subsample=1)
@@ -222,7 +217,8 @@ class TrainingModels():
                                                  subsample=float(self.parameter_list[3]))
             self.logger.print("Using eXtreme Gradient Boosting...")
 
-        self.logger.print("Fitting models...")
+        self.logger.print("Start Fitting models...")
+        self.print_progress_bar()
         self.time_start = time.time()
         self.models.fit(x_train, y_train)
         self.logger.print("Loading And Fitting completed.")
@@ -230,7 +226,10 @@ class TrainingModels():
         self.y_pred = self.models.predict(x_test)
         self.time_end = time.time()
         self.logger.print("Forecasting completed.")
-        self.logger.print("Total Consume time : {:.3f} ms ".format((self.time_end - self.time_start) * 1000))
+        if (self.time_end - self.time_start) > 10:
+            self.logger.print("Total Consume time : {:.3f} s ".format((self.time_end - self.time_start)))
+        else:
+            self.logger.print("Total Consume time : {:.3f} ms ".format((self.time_end - self.time_start) * 1000))
         # self.logger.print("y_pred_len = {}".format([self.y_pred[i] for i in range(len(self.y_pred))]))
 
         return self.y_pred
@@ -298,7 +297,7 @@ class EvaluationStandard():
 
     # R2判定指数
     def R2_rate(self):
-        rate = 1 - self.sse / self.sst
+        rate = 1 - (self.sse / self.sst)
         return rate
 
     # 平均绝对误差
@@ -311,7 +310,7 @@ class EvaluationStandard():
 
     def check(self, nums):
         one_seven_eight = ['1', '7', '8']
-        two_three_four = ['2', '3', '4','5', '6']
+        two_three_four = ['2', '3', '4', '5', '6']
 
         if set(nums).issubset(one_seven_eight) or set(nums).issubset(two_three_four):
             return True
@@ -338,20 +337,43 @@ class EvaluationStandard():
                     answer.append('R2_rate:' + str(self.R2_rate()))
                 else:
                     answer.append('MAE_rate:' + str(self.MAE_rate()))
+            self.logger.print("The calculation is complete.")
             return answer
         else:
             self.logger2.print("Wrong evaluation index has been selected. Please check.")
 
+class DataVisualization():
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.pic = charts.DataCharts()
+        self.logger = Logger.get_logger('Visualization')
+        self.x_train = None
+        self.y_train = None
+        self.x_test = None
+        self.y_test = None
+        self.y_pred = None
+
+    def getMoreDetails(self):
+        return 0
+
+    def ScatterPlot3D(self, x_test, y_pred):
+        self.x_test = x_test
+        self.y_pred = y_pred
+        self.pic.ScatterPlot3D(self.x_test, self.y_pred)
+
+    def ScatterPlot2D(self):
+        return 0
 
 def func(dataset_no, rate, model_no, para_list):
     dataset = ReadDataset(dataset_no)
     splitter = DivisionAndSplitter(rate)
-    train_data_test_data = splitter.split(dataset)
-    train_data, test_data = train_data_test_data[0], train_data_test_data[1]
-    temp = splitter.division(train_data, test_data)
-    x_train, y_train, x_test, y_test = temp[0], temp[1], temp[2], temp[3]
+    x_train, y_train, x_test, y_test = splitter.split(dataset)
     model = TrainingModels(x_train, y_train, x_test, y_test, model_no, para_list)
     y_pred = model.fit_predict(x_train, y_train, x_test)
+    if dataset_no != ('0' or 0):
+        pic = DataVisualization()
+        pic.ScatterPlot3D(x_test, y_pred)
     return y_test, y_pred
 
 
@@ -374,10 +396,12 @@ def get_moxing(data):
         return 7
     elif data['moxing'] == "降维算法":
         return 8
-    elif data['moxing'] == "GBDT":
+    elif data['moxing'] == "adaboost":
         return 9
     elif data['moxing'] == "梯度增强":
         return 10
+    elif data['moxing'] == "K-means":
+        return 11
 
 
 @socketio.on('client_message')
@@ -386,12 +410,13 @@ def handle_client_message(data):
     outcome = str(t_list[1])
     print(data)
     print(outcome)
+
     # print(outcome.shape[0])
     # for i in range()
-    ss='null'
-    if(data['moxing'] != '降维算法'):
+    ss = 'null'
+    if (data['moxing'] != '降维算法'):
         juede = EvaluationStandard(t_list[0], t_list[1], data['pingjiazhibiao'])
-        ss =str(juede.ReturnResults())
+        ss = str(juede.ReturnResults())
         print(ss)
 
     emit('server_message', {'outcome': outcome, 'evaluation_standard': ss})
@@ -402,10 +427,10 @@ hf1 = ["随机"]
 mx1 = {"线性回归", "梯度增强"}
 # 第二个数据集划分方法和模型
 hf2 = ["随机"]
-mx2 = ["支持向量机", "K-近邻", "逻辑回归", "决策树", "随机森林", "朴素贝叶斯", "降维算法", "梯度增强", "GBDT"]
+mx2 = ["支持向量机", "K-近邻", "逻辑回归", "决策树", "随机森林", "朴素贝叶斯", "降维算法", "梯度增强", "adaboost", "K-means"]
 # 第三个数据集划分方法和模型
 hf3 = ["随机"]
-mx3 = ["支持向量机", "K-近邻", "逻辑回归", "决策树", "随机森林", "朴素贝叶斯", "降维算法", "梯度增强", "GBDT"]
+mx3 = ["支持向量机", "K-近邻", "逻辑回归", "决策树", "随机森林", "朴素贝叶斯", "降维算法", "梯度增强", "adaboost","K-means"]
 
 
 def generate_divs(selected_option):
@@ -431,8 +456,10 @@ def generate_divs(selected_option):
         divs = ["降维后维度", "白化"]
     elif selected_option == "梯度增强":
         divs = ["分类或回归", "学习率", "最大深度", "抽样比例"]
-    elif selected_option == "GBDT":
+    elif selected_option == "adaboost":
         divs = ['特征选取方法', '最大深度', '选择特征数', '随机数种子']
+    elif selected_option == "K-means":
+        divs = ['迭代次数']
 
     return divs
 

@@ -43,8 +43,12 @@ class Linear(Algorithm):  # 线性回归
     # 计算R 方差
     def score(self, x_test, y_test):
         y_predict = self.predict(x_test)
-        mean_squared_error = np.sum((y_test - y_predict) ** 2) / len(y_test)
-        r2_score = 1 - mean_squared_error / np.var(y_test)
+        mean = np.mean(y_test)
+        # mean_squared_error = np.sum((y_test - y_predict) ** 2) / len(y_test)
+        # r2_score = 1 - mean_squared_error / np.var(y_test)
+        # print(np.sum((y_test - y_predict) ** 2))
+        # print(np.sum((y_test - mean) ** 2))
+        r2_score = 1 - np.sum((y_test - y_predict) ** 2) / np.sum((y_test - mean) ** 2)
         return r2_score
 
 
@@ -245,6 +249,7 @@ class TreeNode(object):
 class DecisionTreeClassifier(Algorithm):
     def __init__(self, criterion='gini', max_depth=5, d=4,
                  random_state=0):
+        self.label_dtype = None
         assert criterion in ['gini', 'entropy',
                              'error'], 'Expect criterion is one of "gini", ' \
                                        '"entropy" or "error", bug got %s' % criterion
@@ -576,8 +581,10 @@ class DimReduction(Algorithm):
         x_test = np.array(x_test)
         model = PCA(n_components=self.n_components, whiten=self.whiten)
         model.fit_transform(self.x_train)
-        x_pred=model.transform(x_test)
+        x_pred = model.transform(x_test)
         return x_pred[0:5]
+
+
 ##################################################################################
 # 梯度增强
 # 这里使用XGboost
@@ -618,6 +625,8 @@ class Graboosting(Algorithm):
             model.fit(self.x_train, self.y_train)
             y_pred = model.predict(x_test)
             return y_pred
+
+
 ##################################################################################
 class Tree_model:
     def __init__(self, stump, mse, left_value, right_value, residual):
@@ -634,10 +643,13 @@ class Tree_model:
         self.right_value = right_value
         self.residual = residual
 
+
 '''根据feature准备好切分点。例如:
 feature为[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 切分点为[1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5]
 '''
+
+
 class GBDT(Algorithm):
     def __init__(self, criterion='gini', max_depth=5, d=4,
                  random_state=0):
@@ -744,8 +756,46 @@ class GBDT(Algorithm):
                     predict_list[i] = predict_list[i] + Tree.right_value
         return predict_list
 
-##################################################################################
+    ##################################################################################
 
 
+import time
 
 
+def print_progress_bar(total_time=0):
+    list_circle = ["\\", "|", "/", "—"]
+    for i in range(total_time * 4):
+        time.sleep(0.25)
+        print("\r{}".format(list_circle[i % 4]), end="", flush=True)
+
+
+if __name__ == '__main__':
+    # 生成一些随机数据，用于测试
+    np.random.seed(42)
+    X = np.random.uniform(0, 10, size=(100, 2))
+    # print(X)
+    y = np.sin(X[:, 0]) + np.cos(X[:, 1]) + np.random.normal(0, 0.1, size=100)
+    # print(y)
+    #
+    print_progress_bar(200)
+    # df = pd.read_csv('DataSets/BostonHousing.csv')
+    # df1 = df.copy()
+    #
+    # y = df1['medv']
+    # del df1['medv']
+    # x = df1
+    #
+    # x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.99)
+    #
+    # # print(x_train)
+    # print(y_test)
+    #
+    # model = Linear()
+    #
+    # # model = DimReduction(n_components=3, whiten=True)
+    #
+    # model.fit(x_train, y_train)
+    #
+    # y_pred = model.predict(x_test)
+    # print(y_pred)
+    # print(model.score(x_test, y_test))

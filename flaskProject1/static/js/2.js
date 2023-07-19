@@ -68,7 +68,8 @@
       var logDiv = document.getElementById('log');
       var name = message.name
       var content = message.message;
-      logDiv.innerHTML +='['+name +']'+': '+ content + '</br>';
+
+      logDiv.innerHTML +='</br>'+'['+name +']'+': '+ content + '</br>';
       }
   });
   socket.on('server_message',function (backdata) {
@@ -102,7 +103,7 @@
   return "";
   }
 
-  function showDivs() {
+function showDivs() {
     var selectedOption = document.getElementById("option").value;
 
   if (selectedOption !== "") {
@@ -121,7 +122,9 @@
           var inputLabel = document.createElement("label");
           inputLabel.innerHTML = divs[i];
           var inputTextbox = document.createElement("input");
+
           inputTextbox.type = "text";
+          inputTextbox.className="form-control"
           inputTextbox.id=divs[i];
           inputTextbox.placeholder=showPlaceholder(divs[i])
 
