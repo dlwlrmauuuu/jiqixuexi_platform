@@ -39,9 +39,9 @@ class DataCharts:
         layout = go.Layout(
             margin=dict(l=0, r=0, b=0, t=0),
             scene=dict(
-                xaxis=dict(nticks=4),
-                yaxis=dict(nticks=4),
-                zaxis=dict(nticks=4)
+                xaxis=dict(nticks=4, title='Pregnancies'),
+                yaxis=dict(nticks=4, title='Glucose'),
+                zaxis=dict(nticks=4, title='BloodPressure')
             )
         )
         fig = go.Figure(data=data, layout=layout)
